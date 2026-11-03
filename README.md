@@ -1,36 +1,109 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Meu Assistente
 
-## Getting Started
+Chat de IA feito com **Next.js + TypeScript**, com respostas em streaming, personalidades (system prompts) e motor de IA trocável: **Ollama** (local) ou **Groq** (API com plano gratuito).
 
-First, run the development server:
+> 🔗 Demo: _adicione aqui o link da Vercel depois do deploy_
+
+<!-- Dica: coloque um print da tela em /public/screenshot.png e descomente a linha abaixo -->
+<!-- ![Screenshot](public/screenshot.png) -->
+
+## Funcionalidades
+
+- Chat com resposta em **streaming** (o texto aparece aos poucos, como no ChatGPT)
+- **Personalidades** selecionáveis: assistente geral e especialista em WoW PvP
+- **Histórico salvo** no navegador (`localStorage`), que sobrevive ao recarregar a página
+- **Motor trocável** por variável de ambiente, sem mexer no resto do código
+- System prompt controlado no servidor (o navegador só envia o id da persona)
+
+## Stack
+
+- [Next.js](https://nextjs.org/) (App Router) e React
+- TypeScript
+- [Ollama](https://ollama.com/) para rodar modelos localmente
+- [Groq](https://groq.com/) como API de nuvem
+
+## Como funciona
+
+```
+Tela (React)  ->  /api/chat/stream  ->  generateStream()  ->  Ollama ou Groq
+```
+
+A função `generateStream()` em `lib/llm.ts` é a única que conhece o provedor de IA. A rota e a tela só recebem um stream de texto. Trocar de motor é mudar uma variável de ambiente.
+
+## Estrutura
+
+```
+app/
+  page.tsx                  # interface do chat
+  api/chat/stream/route.ts  # rota de streaming
+lib/
+  llm.ts                    # comunicação com Ollama / Groq
+  personas.ts               # system prompts de cada persona
+```
+
+## Como rodar
+
+### 1. Instalar
+
+```bash
+git clone <url-do-repositorio>
+cd meu-assistente
+npm install
+```
+
+### 2. Escolher o motor
+
+**Opção A: Ollama (local, sem conta)**
+
+```bash
+ollama pull llama3.2
+```
+
+Não precisa criar `.env.local`. Sem `LLM_PROVIDER`, o app usa o Ollama.
+
+**Opção B: Groq (nuvem, plano gratuito)**
+
+Crie uma chave em [console.groq.com](https://console.groq.com) e copie o `.env.example` para `.env.local`:
+
+```bash
+cp .env.example .env.local
+```
+
+Preencha os valores:
+
+```
+LLM_PROVIDER=groq
+GROQ_API_KEY=sua-chave-aqui
+GROQ_MODEL=openai/gpt-oss-120b
+```
+
+> A lista de modelos da Groq muda com o tempo. Confira os disponíveis no console e ajuste `GROQ_MODEL` se precisar.
+
+### 3. Rodar
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Abra [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Variáveis de ambiente
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Variável       | Descrição                                                             |
+| -------------- | --------------------------------------------------------------------- |
+| `LLM_PROVIDER` | `groq` para usar a Groq. Qualquer outro valor (ou vazio) usa o Ollama |
+| `GROQ_API_KEY` | Chave da API da Groq                                                  |
+| `GROQ_MODEL`   | Nome do modelo na Groq                                                |
 
-## Learn More
+## Limitações
 
-To learn more about Next.js, take a look at the following resources:
+- O plano gratuito da Groq tem limite de requisições e tokens por minuto e por dia (erro 429 ao estourar)
+- O Ollama só funciona na máquina de quem o instalou, então a versão publicada usa a Groq
+- Modelos de linguagem podem inventar fatos, principalmente sobre temas específicos como WoW. Não há busca de dados atualizados
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Próximos passos
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- RAG para o modo WoW (buscar dados reais e injetar no prompt)
+- Salvar conversas em banco de dados
+- Múltiplas conversas na barra lateral
+- Limite de uso por usuário na versão publicada
