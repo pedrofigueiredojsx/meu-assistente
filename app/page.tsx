@@ -85,11 +85,16 @@ export default function Home() {
         value={persona}
         onChange={(e) => setPersona(e.target.value as PersonaId)}
         style={{ padding: 8, background: "#fff", color: "#111" }}
+        className="field"
       >
         <option value="geral">Geral</option>
         <option value="wow">Especialista WoW PvP</option>
       </select>
-      <button onClick={() => setMessages([])} style={{ marginLeft: 8 }}>
+      <button
+        onClick={() => setMessages([])}
+        style={{ marginLeft: 8 }}
+        className="btn btn-ghost"
+      >
         Nova Conversa
       </button>
       <div
@@ -127,9 +132,14 @@ export default function Home() {
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && handleSend()}
           placeholder="Pergunte alguma coisa..."
+          className="field"
           style={{ flex: 1, padding: 8, background: "#fff", color: "#111" }}
         />
-        <button onClick={handleSend} disabled={loading}>
+        <button
+          onClick={handleSend}
+          disabled={loading}
+          className="btn btn-primary"
+        >
           Enviar
         </button>
       </div>
