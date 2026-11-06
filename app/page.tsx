@@ -1,9 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import type { Message } from "@/lib/llm";
 import type { PersonaId } from "@/lib/personas";
-import { load } from "next/dist/compiled/@edge-runtime/primitives/load";
 
 const STORAGE_KEY = "meu-assistente:conversa";
 
@@ -32,6 +31,12 @@ export default function Home() {
     if (!loaded) return;
     localStorage.setItem(STORAGE_KEY, JSON.stringify({ messages, persona }));
   }, [messages, persona, loaded]);
+
+  const bottomRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ block: "end" });
+  }, [messages]);
 
   async function handleSend() {
     const text = input.trim();
@@ -79,44 +84,42 @@ export default function Home() {
   }
 
   return (
-    <main style={{ maxWidth: 600, margin: "0 auto", padding: 16 }}>
-      <h1>Meu Assistente</h1>
-      <select
-        value={persona}
-        onChange={(e) => setPersona(e.target.value as PersonaId)}
-        style={{ padding: 8, background: "#fff", color: "#111" }}
-        className="field"
-      >
-        <option value="geral">Geral</option>
-        <option value="wow">Especialista WoW PvP</option>
-      </select>
-      <button
-        onClick={() => setMessages([])}
-        style={{ marginLeft: 8 }}
-        className="btn btn-ghost"
-      >
-        Nova Conversa
-      </button>
-      <div
-        style={{
-          display: "flex",
-          flexDirection: "column",
-          gap: 8,
-          margin: "16px 0",
-        }}
-      >
+    <main className="mx-auto flex h-dvh w-full max-w-2xl flex-col p-4">
+      <h1 className="bg-linear-to-r from-blue-600 to-violet-500 bg-clip-text text-4xl font-extrabold tracking-tight text-transparent">
+        Meu assistente
+      </h1>
+      <p className="mt-1 text-sm text-gray-500">
+        Chat de IA com Next.js, streaming e personalidades
+      </p>
+
+      <div className="mt-3 flex items-center gap-2">
+        <select
+          value={persona}
+          onChange={(e) => setPersona(e.target.value as PersonaId)}
+          className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-600/25"
+        >
+          <option value="geral">Geral</option>
+          <option value="wow">Especialista WoW PvP</option>
+        </select>
+
+        <button
+          onClick={() => setMessages([])}
+          className="rounded-lg border border-gray-400 px-4 py-2 text-sm font-semibold transition hover:bg-gray-400/20 active:scale-95"
+        >
+          Nova conversa
+        </button>
+      </div>
+
+      <div className="my-4 flex flex-col gap-2">
         {messages.map((m, i) => (
           <div
             key={i}
-            style={{
-              alignSelf: m.role === "user" ? "flex-end" : "flex-start",
-              background: m.role === "user" ? "#2563eb" : "#e5e7eb",
-              color: m.role === "user" ? "#fff" : "#111",
-              padding: "8px 12px",
-              borderRadius: 12,
-              maxWidth: "80%",
-              whiteSpace: "pre-wrap",
-            }}
+            className={`max-w-[85%] whitespace-pre-wrap wrap-break-word rounded-2xl px-4 py-3 leading-relaxed 
+              ${
+                m.role === "user"
+                  ? "self-end bg-blue-600 text-white"
+                  : "self-start bg-gray-200 text-gray-900"
+              }`}
           >
             {m.content}
           </div>
@@ -124,21 +127,21 @@ export default function Home() {
         {loading && messages[messages.length - 1]?.content === "" && (
           <div>Pensando...</div>
         )}
+        <div ref={bottomRef} />
       </div>
 
-      <div style={{ display: "flex", gap: 8 }}>
+      <div className="flex gap-2">
         <input
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && handleSend()}
           placeholder="Pergunte alguma coisa..."
-          className="field"
-          style={{ flex: 1, padding: 8, background: "#fff", color: "#111" }}
+          className="flex-1 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-blue-600 focus:outlin-none focus:ring-2 focus:ring-blue-600/25"
         />
         <button
           onClick={handleSend}
           disabled={loading}
-          className="btn btn-primary"
+          className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition disabled:cursor-not-allowed disabled:opacity-50 enabled:hover:bg-blue-700 enabled:active:scale-95"
         >
           Enviar
         </button>
